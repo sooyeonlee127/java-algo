@@ -1,3 +1,4 @@
+package 시뮬레이션;
 import java.util.Scanner;
 
 public class Swea4013 {
