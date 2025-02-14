@@ -5,7 +5,7 @@ import java.util.Queue;
 import java.util.Scanner;
 
 public class Swea2477 {
-
+    
     static class Person {
         boolean receipt_Yn, done_Yn;
         int depart_time, receipt_num, oper_num;
@@ -17,6 +17,9 @@ public class Swea2477 {
         }
         void wait_receipt() {
             this.receipt_Yn = true;
+        }
+        void done() {
+            this.done_Yn = true;
         }
         void register_receipt(int num) {
             this.receipt_num = num;
@@ -45,18 +48,17 @@ public class Swea2477 {
                 oper_time[i] = sc.nextInt();
             }
             int[][] ing_A = new int[N][2];
+            int[][] ing_B = new int[M][2];
             Person[] users = new Person[K];
             for (int i=0; i<K; i++) {
                 users[i] = new Person(sc.nextInt());
             }
             Queue<Integer> wait_receipt_lst = new ArrayDeque<>();
             Queue<Integer> wait_oper_lst = new ArrayDeque<>();
-
             int time = 0;
-            for (int t=0; t<1001; t++) {
-                // 도착한 사람들 추가
+            while (true) {
                 for (int i=0; i<K; i++) {
-                    if (!users[i].receipt_Yn && users[i].depart_time <= t) {
+                    if (!users[i].receipt_Yn && users[i].depart_time <= time) {
                         users[i].wait_receipt();
                         wait_receipt_lst.add(i);
                     }
@@ -68,14 +70,59 @@ public class Swea2477 {
                         if (ing_A[i][0] == 0) {
                             ing_A[i][0] = receipt_time[i];
                             int now = wait_receipt_lst.poll();
-                            users[now].receipt_num = i;
+                            users[now].register_receipt(i+1);
                             ing_A[i][1] = now;
+                            break;
                         }
                     }
                     if (len == wait_receipt_lst.size()) break;
                 }
+                while (!wait_oper_lst.isEmpty()) {
+                    int len = wait_oper_lst.size();
+                    for (int i=0; i<M; i++) {
+                        if (ing_B[i][0] == 0) {
+                            ing_B[i][0] = oper_time[i];
+                            int now = wait_oper_lst.poll();
+                            users[now].register_oper(i+1);
+                            ing_B[i][1] = now;
+                            break;
+                        }
+                    }
+                    if (len == wait_oper_lst.size()) break;
+                }
+                for (int i=0; i<N; i++) {
+                    if (ing_A[i][0] > 0) {
+                        ing_A[i][0] --;
+                        if (ing_A[i][0] == 0) {
+                            wait_oper_lst.add(ing_A[i][1]);
+                        }
+                    }
+                }
+                for (int i=0; i<M; i++) {
+                    if (ing_B[i][0] > 0) {
+                        ing_B[i][0] --;
+                        if (ing_B[i][0] == 0) {
+                            users[ing_B[i][1]].done();
+                        }
+                    }
+                }
+                time ++;
+                boolean flag = true;
+                for (int i=0; i<K; i++) {
+                    if (!users[i].done_Yn) {
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag) break;
             }
-            System.out.println("#"+tc+answer);
+            for (int i=0; i<K; i++) {
+                if (users[i].receipt_num == A && users[i].oper_num == B) {
+                    answer += i+1;
+                }
+            }
+            if (answer == 0) answer = -1;
+            System.out.println("#"+tc+" "+answer);
         }
     }
 }
